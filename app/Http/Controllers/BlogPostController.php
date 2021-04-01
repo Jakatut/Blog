@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\BlogPost;
-use Faker\Provider\Uuid;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -20,6 +19,7 @@ class BlogPostController extends Controller
      */
     public function __construct()
     {
+        $this->middleware('auth');
     }
 
     /**

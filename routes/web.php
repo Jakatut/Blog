@@ -2,6 +2,8 @@
 
 /** @var \Laravel\Lumen\Routing\Router $router */
 
+use App\Http\Controllers\AuthController;
+
 /*
 |--------------------------------------------------------------------------
 | Application Routes
@@ -17,17 +19,27 @@ $router->get('/', function () use ($router) {
     return 'running';
 });
 
-// Create a blog.
-$router->post('blog', 'BlogPostController@create');
 
-// Get a list of all blogs
-$router->get('blog', 'BlogPostController@find');
+$router->group(['prefix' => 'api'], function () use ($router) {
 
-// Get a blog by id.
-$router->get('blog/{id}', 'BlogPostController@get');
+    $router->post('register', 'AuthController@register');
+    $router->post('login', 'AuthController@login');
 
-// Update a blog by id.
-$router->put('blog/{id}', 'BlogPostController@update');
+    $router->group(['prefix' => 'blog'], function () use ($router) {
 
-// Delete a blog by id.
-$router->delete('blog/{id}', 'BlogPostController@delete');
+        // Create a blog.
+        $router->post('', 'BlogPostController@create');
+
+        // Get a list of all blogs
+        $router->get('', 'BlogPostController@find');
+
+        // Get a blog by id.
+        $router->get('{id}', 'BlogPostController@get');
+
+        // Update a blog by id.
+        $router->put('{id}', 'BlogPostController@update');
+
+        // Delete a blog by id.
+        $router->delete('{id}', 'BlogPostController@delete');
+    });
+});
