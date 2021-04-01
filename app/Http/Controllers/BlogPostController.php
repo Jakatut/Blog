@@ -37,8 +37,8 @@ class BlogPostController extends Controller
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $image = $request->file('image');
             $imageName = uniqid() . $image->getClientOriginalName();
-            $image->storeAs('public', $imageName);
-            $blog_post['image'] = isset($imageName) ? '/public/storage/' . $imageName : '';
+            $path = $image->storeAs('public', $imageName);
+            $blog_post['image'] = $path;
         }
        
         $id = DB::table(self::TABLE)->insertGetId($blog_post->attributesToArray());
