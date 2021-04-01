@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BlogPost;
+use Faker\Provider\Uuid;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -30,10 +31,16 @@ class BlogPostController extends Controller
     public function create(Request $request)
     {
         $this->ValidateBlogPost($request);
-        // $image = $request->file('image');
         $data = $request->all();
         $blog_post = new BlogPost($data);
-        $blog_post->image = base64_encode($data['image']);
+
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            $image = $request->file('image');
+            $imageName = uniqid() . $image->getClientOriginalName();
+            $image->storeAs('public', $imageName);
+            $blog_post['image'] = isset($imageName) ? '/public/storage/' . $imageName : '';
+        }
+       
         $id = DB::table(self::TABLE)->insertGetId($blog_post->attributesToArray());
         $uri = $this->getUri($request, $id);
         return (new Response())->header('Location', $uri);
@@ -60,7 +67,7 @@ class BlogPostController extends Controller
     public function get(string $id)
     {
         $blog_post = DB::table(self::TABLE)->find($id);
-        $blog_post->image = base64_decode($blog_post->image);
+        $image = 
         $status = empty($blog_post) ? 404 : 200;
         return new JsonResponse($blog_post, $status);
     }
