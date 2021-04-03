@@ -48,7 +48,7 @@ class BlogPostController extends Controller
     /**
      * Get a list of all blog posts.
      *
-     * @return Response
+     * @return Response|JsonResponse
      */
     public function find()
     {
@@ -63,7 +63,7 @@ class BlogPostController extends Controller
      * Get a blog post by id.
      *
      * @param  string   $id
-     * @return Response
+     * @return Response|JsonResponse
      */
     public function get(string $id)
     {
@@ -140,6 +140,7 @@ class BlogPostController extends Controller
      * 
      * @param Request   $request
      * @param int       $id
+     * @return String
      */
     protected function getUri($request, $id)
     {
@@ -153,7 +154,7 @@ class BlogPostController extends Controller
      * @param UploadedFile   $image
      * @param Boolean        $removeOld
      * @param String         $oldImage
-     * @return String        The url of the image.
+     * @return String
      */
     protected function saveImageToStorage($image, $removeOld = false, $oldImage = '') {
         $url = '';
@@ -170,9 +171,17 @@ class BlogPostController extends Controller
         return $url;
     }
 
+    /**
+     * Gets the file name of the image with the provided name in cloud storage.
+     * 
+     * @param String $imageName
+     * @return String
+     */
     protected function getStorageImageName($imageName) {
         if (str_contains($imageName, self::SEARCH_NEEDLE)) {
             return substr($imageName, strpos($imageName, self::SEARCH_NEEDLE) + strlen(self::SEARCH_NEEDLE));
         }
+
+        return $imageName;
     }
 }
