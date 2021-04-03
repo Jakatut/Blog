@@ -22,12 +22,4 @@ class BlogPost extends Model {
     protected $fillable = [
         'title', 'summary', 'body', 'image'
     ];
-
-    public function setImageEncoded($value) {
-        $this->attributes['image'] = base64_encode($value);
-    }
-
-    public function getImageDecoded() {
-        return base64_decode($this->attributes['image']);
-    }
 }

@@ -125,9 +125,9 @@ class BlogPostController extends Controller
     protected function ValidateBlogPost($request)
     {
         $this->validate($request, [
-            'title' => 'required|min:1|max:128',
-            'summary' => 'required',
-            'body' => 'required',
+            'title' => 'required|min:1|max:255',            // varchar
+            'summary' => 'required|min:1|max:255',          // varchar
+            'body' => 'required|min:1|max:16777215',        // mediumText
             'image' => 'nullable|image',
         ]);
     }
