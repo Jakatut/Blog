@@ -32,7 +32,7 @@ class BlogPostController extends Controller
      */
     public function create(Request $request)
     {
-        $this->ValidateBlogPost($request);
+        $this->ValidateBlogPost($request, true);
         $blog_post = new BlogPost($request->all());
 
         if ($request->hasFile('image')) {
@@ -125,12 +125,13 @@ class BlogPostController extends Controller
      * 
      * @param Request $request
      */
-    protected function ValidateBlogPost($request)
+    protected function ValidateBlogPost($request, $textFieldsRequired = false)
     {
+        $required = $textFieldsRequired ? 'required|' : '';
         $this->validate($request, [
-            'title' => 'required|min:1|max:255',            // varchar
-            'summary' => 'required|min:1|max:255',          // varchar
-            'body' => 'required|min:1|max:16777215',        // mediumText
+            'title' => $required . 'min:1|max:255',            // varchar
+            'summary' => $required . 'min:1|max:255',          // varchar
+            'body' => $required . 'min:1|max:16777215',        // mediumText
             'image' => 'nullable|image',
         ]);
     }

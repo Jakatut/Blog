@@ -19,7 +19,7 @@ class CreateBlogPostTable extends Migration
             $table->string('title');
             $table->string('summary');
             $table->mediumText('body');
-            $table->binary('image')->nullable();
+            $table->string('image')->nullable();
         });
     }
 
