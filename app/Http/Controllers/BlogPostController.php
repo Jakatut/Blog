@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Storage;
 class BlogPostController extends Controller
 {
     const TABLE = 'blog_post';
+    const SEARCH_NEEDLE = "/images/";
+
 
     /**
      * Create a new controller instance.
@@ -35,7 +37,7 @@ class BlogPostController extends Controller
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $this->saveImageToStorage($image);
+            $blog_post->image = $this->saveImageToStorage($image);
         }
 
         $blog_post->save();
@@ -92,10 +94,11 @@ class BlogPostController extends Controller
         // If an image was provided, save it to cloud storage and delete the previous image.        
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $this->saveImageToStorage($image, true, $blog_post->image);
+            $imageLocation = $this->saveImageToStorage($image, true, $blog_post->image);
         }
 
-        $blog_post->update($blog_post->getAttributes());
+        // Update the array with the request fillables and the new image location if there is one.
+        $blog_post->update(array_merge($request->all(), ['image' => $imageLocation ?? $blog_post->image]));
         return new Response('', 204);
     }
 
@@ -157,12 +160,19 @@ class BlogPostController extends Controller
         if ($image->isValid()) {
             $disk = Storage::disk('gcs');
             if ($removeOld && !empty($oldImage)) {
-                $disk->delete($oldImage);
+                
+                $disk->delete($this->getStorageImageName($oldImage));
             }
             $imageName = $disk->put('', $image, 'public');
             $url = $disk->url($imageName);
         }
 
         return $url;
+    }
+
+    protected function getStorageImageName($imageName) {
+        if (str_contains($imageName, self::SEARCH_NEEDLE)) {
+            return substr($imageName, strpos($imageName, self::SEARCH_NEEDLE) + strlen(self::SEARCH_NEEDLE));
+        }
     }
 }
