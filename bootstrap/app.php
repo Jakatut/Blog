@@ -1,12 +1,18 @@
 <?php
 
-require_once __DIR__.'/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 (new Laravel\Lumen\Bootstrap\LoadEnvironmentVariables(
     dirname(__DIR__)
 ))->bootstrap();
 
 date_default_timezone_set(env('APP_TIMEZONE', 'UTC'));
+
+function is_gae()
+{
+    return !file_exists(__DIR__ . '/../.env');
+}
+
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +24,7 @@ date_default_timezone_set(env('APP_TIMEZONE', 'UTC'));
 | application as an "IoC" container and router for this framework.
 |
 */
+
 
 $app = new Laravel\Lumen\Application(
     dirname(__DIR__)
@@ -104,8 +111,17 @@ $app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 |--------------------------------------------------------------------------
 |
 */
-$app->singleton('filesystem', function ($app) { return $app->loadComponent('filesystems', 'Illuminate\Filesystem\FilesystemServiceProvider', 'filesystem'); });
+$app->singleton(
+    Illuminate\Contracts\Filesystem\Factory::class,
+    function ($app) {
+        return new Illuminate\Filesystem\FilesystemManager($app);
+    }
+);
 
+$app->configure('filesystems');
+
+$app->register(Illuminate\Filesystem\FilesystemServiceProvider::class);
+$app->register(Superbalist\LaravelGoogleCloudStorage\GoogleCloudStorageServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
@@ -121,7 +137,7 @@ $app->singleton('filesystem', function ($app) { return $app->loadComponent('file
 $app->router->group([
     'namespace' => 'App\Http\Controllers',
 ], function ($router) {
-    require __DIR__.'/../routes/web.php';
+    require __DIR__ . '/../routes/web.php';
 });
 
 return $app;

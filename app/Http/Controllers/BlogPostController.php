@@ -6,7 +6,7 @@ use App\Models\BlogPost;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class BlogPostController extends Controller
 {
@@ -35,14 +35,14 @@ class BlogPostController extends Controller
         $blog_post = new BlogPost($data);
 
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            $disk = Storage::disk('gcs');
             $image = $request->file('image');
-            $imageName = uniqid() . $image->getClientOriginalName();
-            $path = $image->storeAs('public', $imageName);
-            $blog_post['image'] = $path;
+            $imageName = $disk->put('', $image, 'public');
+            $blog_post['image'] = $disk->url($imageName);
         }
-       
-        $id = DB::table(self::TABLE)->insertGetId($blog_post->attributesToArray());
-        $uri = $this->getUri($request, $id);
+
+        $blog_post->save();
+        $uri = $this->getUri($request, $blog_post->id);
         return (new Response())->header('Location', $uri);
     }
 
@@ -53,7 +53,7 @@ class BlogPostController extends Controller
      */
     public function find()
     {
-        $blog_posts = DB::table(self::TABLE)->get();
+        $blog_posts = BlogPost::all();
         $status = count($blog_posts) == 0 ? 404 : 200;
         return new JsonResponse($blog_posts, $status);
     }
@@ -66,8 +66,7 @@ class BlogPostController extends Controller
      */
     public function get(string $id)
     {
-        $blog_post = DB::table(self::TABLE)->find($id);
-        $image = 
+        $blog_post = BlogPost::find($id);
         $status = empty($blog_post) ? 404 : 200;
         return new JsonResponse($blog_post, $status);
     }
@@ -83,14 +82,24 @@ class BlogPostController extends Controller
     {
         $this->ValidateBlogPost($request);
 
-        $foundBlogPost = DB::table(self::TABLE)->find($id);
-        if (empty($foundBlogPost)) {
+        $blog_post = BlogPost::find($id);
+        if ($blog_post) {
             return new Response('', 404);
         }
 
-        $data = $request->all();
-        $blog_post = new BlogPost($data);
-        DB::table(self::TABLE)->where('id', '=', $id)->update($blog_post->attributesToArray());
+        // Check if a file exists in the query.
+        // If the blog post already has an image, delete and replace it with the new image.
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            $disk = Storage::disk('gcs');
+            if ($blog_post->image) {
+                $disk->delete($blog_post->image);
+            }
+            $image = $request->file('image');
+            $imageName = $disk->put('', $image, 'public');
+            $blog_post['image'] = $disk->url($imageName);
+        }
+
+        $blog_post->update($blog_post->attributesToArray());
         return new Response('', 204);
     }
 
@@ -102,7 +111,13 @@ class BlogPostController extends Controller
      */
     public function delete($id)
     {
-        $deleted = DB::table(self::TABLE)->delete($id);
+
+        $blog_post = BlogPost::find($id);
+        if (!$blog_post) {
+            return new Response('', 404);
+        }
+        
+        $blog_post->delete();
         return new Response('', 204);
     }
 

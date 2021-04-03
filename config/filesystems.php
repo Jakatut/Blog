@@ -23,7 +23,7 @@ return [
     | will be bound as the Cloud disk implementation in the container.
     |
     */
-    'cloud' => env('FILESYSTEM_CLOUD', 's3'),
+    'cloud' => 's3',
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks
@@ -39,19 +39,15 @@ return [
             'driver' => 'local',
             'root' => storage_path('app'),
         ],
-
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
         ],
         'gcs' => [
-            'driver' => 'gcs',
-            'project_id' => env('GOOGLE_CLOUD_PROJECT_ID', 'your-project-id'),
-            'bucket' => env('GOOGLE_CLOUD_STORAGE_BUCKET', null),
-            'path_prefix' => 'profiles/',
-            'key_file' => [
+            'driver'          => 'gcs',
+            'project_id'      => env('GOOGLE_CLOUD_PROJECT_ID', 'your-project-id'),
+            'key_file'        => [
                 'type' => env('GOOGLE_CLOUD_ACCOUNT_TYPE'),
                 'private_key_id' => env('GOOGLE_CLOUD_PRIVATE_KEY_ID'),
                 'private_key' => str_replace('\\n', "\n", env('GOOGLE_CLOUD_PRIVATE_KEY')),
@@ -61,22 +57,10 @@ return [
                 'token_uri' => env('GOOGLE_CLOUD_TOKEN_URI'),
                 'auth_provider_x509_cert_url' => env('GOOGLE_CLOUD_AUTH_PROVIDER_CERT_URL'),
                 'client_x509_cert_url' => env('GOOGLE_CLOUD_CLIENT_CERT_URL'),
-           ],
+            ],
+            'bucket'          => env('GOOGLE_CLOUD_STORAGE_BUCKET', 'your-bucket'),
+            'path_prefix'     => env('GOOGLE_CLOUD_STORAGE_PATH_PREFIX', null),
+            'storage_api_uri' => env('GOOGLE_CLOUD_STORAGE_API_URI', null),
         ],
     ],
-    /*
-    |--------------------------------------------------------------------------
-    | Symbolic Links
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure the symbolic links that will be created when the
-    | `storage:link` Artisan command is executed. The array keys should be
-    | the locations of the links and the values should be their targets.
-    |
-    */
-
-    'links' => [
-        public_path('storage') => storage_path('app/public'),
-    ],
-
 ];

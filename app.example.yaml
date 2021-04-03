@@ -1,0 +1,39 @@
+runtime: php74
+service: api
+env_variables:
+  ## Put production environment variables here.
+  # APP_URL: https://microposts.nad-a4.ca
+  APP_KEY:
+  APP_ENV: production
+  APP_DEBUG: false
+  CACHE_DRIVER: database
+  SESSION_DRIVER: database
+  MIX_ENV_MODE: production
+  MIX_APP_ENV: production
+
+  DB_DATABASE:
+  DB_USERNAME:
+  DB_PASSWORD:
+  DB_SOCKET:
+  GOOGLE_CLOUD_PROJECT_ID:
+  GOOGLE_CLOUD_STORAGE_BUCKET:
+  GOOGLE_CLOUD_ACCOUNT_TYPE:
+  GOOGLE_CLOUD_PRIVATE_KEY_ID:
+  GOOGLE_CLOUD_PRIVATE_KEY:
+  GOOGLE_CLOUD_CLIENT_EMAIL:
+  GOOGLE_CLOUD_CLIENT_ID:
+  GOOGLE_CLOUD_AUTH_URI:
+  GOOGLE_CLOUD_TOKEN_URI:
+  GOOGLE_CLOUD_AUTH_PROVIDER_CERT_URL:
+  GOOGLE_CLOUD_CLIENT_CERT_URL:
+  GOOGLE_CLOUD_STORAGE_PATH_PREFIX:
+  GOOGLE_CLOUD_STORAGE_API_URI: 
+
+  SECURITY_HEADER_HSTS_ENABLE: true
+  SESSION_SECURE_COOKIE: true
+
+handlers:
+  - url: .*
+    redirect_http_response_code: 301
+    script: auto
+    secure: always
