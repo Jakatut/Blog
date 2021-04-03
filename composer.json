@@ -6,6 +6,7 @@
     "type": "project",
     "require": {
         "php": "^7.3|^8.0",
+        "a1comms/gae-support-laravel": "^6.0",
         "illuminate/filesystem": "^8.35",
         "laravel/lumen-framework": "^8.0",
         "superbalist/flysystem-google-storage": "^7.2",

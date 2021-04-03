@@ -1,6 +1,7 @@
 # Setup
 
-ln -rs ./storage/app/public ./public/storage
+php artisan migrate
+php artisa gae:setup --config --bucket="id" --db-socket="cloud-sql-instance-socket-connection-string" --db-name="cloud-sql-database-name" --db-host="cloud-sql-instance-ipv4-address" your-app-id
 
 # Lumen PHP Framework
 

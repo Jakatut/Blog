@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 class BlogPostController extends Controller
 {
     const TABLE = 'blog_post';
-    
+
     /**
      * Create a new controller instance.
      *
@@ -31,19 +31,16 @@ class BlogPostController extends Controller
     public function create(Request $request)
     {
         $this->ValidateBlogPost($request);
-        $data = $request->all();
-        $blog_post = new BlogPost($data);
+        $blog_post = new BlogPost($request->all());
 
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $disk = Storage::disk('gcs');
+        if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $imageName = $disk->put('', $image, 'public');
-            $blog_post['image'] = $disk->url($imageName);
+            $this->saveImageToStorage($image);
         }
 
         $blog_post->save();
         $uri = $this->getUri($request, $blog_post->id);
-        return (new Response())->header('Location', $uri);
+        return (new Response(''))->header('Resource-Location', $uri);
     }
 
     /**
@@ -54,8 +51,10 @@ class BlogPostController extends Controller
     public function find()
     {
         $blog_posts = BlogPost::all();
-        $status = count($blog_posts) == 0 ? 404 : 200;
-        return new JsonResponse($blog_posts, $status);
+        if (empty($blog_posts)) {
+            return new Response('', 404);
+        }
+        return new JsonResponse($blog_posts, 200);
     }
 
     /**
@@ -67,8 +66,11 @@ class BlogPostController extends Controller
     public function get(string $id)
     {
         $blog_post = BlogPost::find($id);
-        $status = empty($blog_post) ? 404 : 200;
-        return new JsonResponse($blog_post, $status);
+        if (empty($blog_post)) {
+            return new Response('', 404);
+        }
+
+        return new JsonResponse($blog_post, 200);
     }
 
     /**
@@ -81,25 +83,19 @@ class BlogPostController extends Controller
     public function update(Request $request, $id)
     {
         $this->ValidateBlogPost($request);
-
         $blog_post = BlogPost::find($id);
-        if ($blog_post) {
+
+        if (empty($blog_post)) {
             return new Response('', 404);
         }
 
-        // Check if a file exists in the query.
-        // If the blog post already has an image, delete and replace it with the new image.
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $disk = Storage::disk('gcs');
-            if ($blog_post->image) {
-                $disk->delete($blog_post->image);
-            }
+        // If an image was provided, save it to cloud storage and delete the previous image.        
+        if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $imageName = $disk->put('', $image, 'public');
-            $blog_post['image'] = $disk->url($imageName);
+            $this->saveImageToStorage($image, true, $blog_post->image);
         }
 
-        $blog_post->update($blog_post->attributesToArray());
+        $blog_post->update($blog_post->getAttributes());
         return new Response('', 204);
     }
 
@@ -116,7 +112,7 @@ class BlogPostController extends Controller
         if (!$blog_post) {
             return new Response('', 404);
         }
-        
+
         $blog_post->delete();
         return new Response('', 204);
     }
@@ -132,7 +128,7 @@ class BlogPostController extends Controller
             'title' => 'required|min:1|max:128',
             'summary' => 'required',
             'body' => 'required',
-            'image' => 'nullable',
+            'image' => 'nullable|image',
         ]);
     }
 
@@ -145,5 +141,28 @@ class BlogPostController extends Controller
     protected function getUri($request, $id)
     {
         return $request->path() . '/' . $id;
+    }
+
+
+    /**
+     * Saves an image to cloud storage with the option to remove the old image.
+     * 
+     * @param UploadedFile   $image
+     * @param Boolean        $removeOld
+     * @param String         $oldImage
+     * @return String        The url of the image.
+     */
+    protected function saveImageToStorage($image, $removeOld = false, $oldImage = '') {
+        $url = '';
+        if ($image->isValid()) {
+            $disk = Storage::disk('gcs');
+            if ($removeOld && !empty($oldImage)) {
+                $disk->delete($oldImage);
+            }
+            $imageName = $disk->put('', $image, 'public');
+            $url = $disk->url($imageName);
+        }
+
+        return $url;
     }
 }

@@ -28,10 +28,10 @@ $router->group(['prefix' => 'api'], function () use ($router) {
     $router->group(['prefix' => 'blog'], function () use ($router) {
 
         // Create a blog.
-        $router->post('', 'BlogPostController@create');
+        $router->post('/', 'BlogPostController@create');
 
         // Get a list of all blogs
-        $router->get('', 'BlogPostController@find');
+        $router->get('/', 'BlogPostController@find');
 
         // Get a blog by id.
         $router->get('{id}', 'BlogPostController@get');
